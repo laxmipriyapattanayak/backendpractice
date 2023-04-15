@@ -1,6 +1,7 @@
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 
-const { securePassword } = require("../helpers/bcryptPassword");
+const { securePassword, comparePassword } = require("../helpers/bcryptPassword");
 const User = require("../models/users");
 const dev = require("../config");
 const { sendEmailWithNodeMailer } = require("../helpers/email");
@@ -84,15 +85,101 @@ const verifyEmail = async (req,res) => {
                 message: "user with this email already exist",
             });
            }
+           //create user
+           const newUser = new User({
+            name : name,
+            email : email,
+            password : hashedPassword,
+            phone : phone,
+            is_varified: 1,
+           })
+
+            if(image){
+                newUser.image.data = fs.readFileSync(image.path);
+                newUser.image.contentType = image.type;
+            }
+
+            const user = await newUser.save()
+            if(!user){
+                res.status(400).json({
+                    message: "user was not repeated",
+                });
+            }
+                res.status(201).json({
+                    user,
+                    message: "user was created.ready to sign in",
+                });
         });
-        res.status(200).json({
-            message: "email is verified",
-        });
+        
     } catch (error){
         res.status(500).json({
             message: error.message,
         });
     }
 };
+const loginUser = async (req,res) => {
+    try {
+        const {email, password} = req.body;
+        if( !email || !password) {
+            return res.status(404).json({
+                message: "email or password is missing",
+            });
+        }
 
-module.exports = { registerUser,verifyEmail };
+        if(password.length < 6){
+            return res.status(404).json({
+                message: "minimum length for password is 6",
+            })
+        }
+        const user = await User.findOne({ email: email })
+        if (!user) {
+            return res.status(400).json({
+                message: "user with this email doesn't exist",
+            });
+        }
+         const isPasswordMatched = await comparePassword(password, user.password)
+
+         if (!isPasswordMatched) {
+            return res.status(400).json({
+                message:"email/password mismatched",
+            });
+         }
+        res.status(200).json({
+            user: {
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                image: user.image,
+            },
+            message: "login successful",
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+const logoutUser = (req,res) => {
+    try {
+        res.status(200).json({
+            message: "logout successful",
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+const userProfile = (req,res) => {
+    try {
+        res.status(200).json({
+            messahe: "profile is returned",
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+}
+module.exports = { registerUser,verifyEmail,loginUser,logoutUser, userProfile };
