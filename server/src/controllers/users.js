@@ -177,15 +177,32 @@ const logoutUser = (req,res) => {
     }
 };
 
-const userProfile = (req,res) => {
+const userProfile = async (req,res) => {
     try {
+        const userData = await User.findById(req.session.userId, { password: 0 });
         res.status(200).json({
-            messahe: "profile is returned",
+            ok: true,
+            message: "profile is returned",
+            user: userData,
         });
     } catch (error) {
         res.status(500).json({
             message: error.message,
         });
     }
-}
-module.exports = { registerUser,verifyEmail,loginUser,logoutUser, userProfile };
+};
+
+const deleteUser = async (req,res) => {
+    try {
+        await User.findByIdAndDelete(req.session.userId);
+        res.status(200).json({
+            ok: true,
+            message: "user was deleted successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+module.exports = { registerUser,verifyEmail,loginUser,logoutUser, userProfile, deleteUser };

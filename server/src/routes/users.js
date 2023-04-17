@@ -3,7 +3,13 @@ const session = require("express-session");
 const router = require("express").Router();
 
 
-const { registerUser, verifyEmail, loginUser, logoutUser, userProfile } = require("../controllers/users");
+const { registerUser, 
+        verifyEmail, 
+        loginUser, 
+        logoutUser, 
+        userProfile, 
+        deleteUser 
+     } = require("../controllers/users");    
 const dev = require("../config");
 const { isLoggedIn, isLoggedOut } = require("../middlewares/auth");
 
@@ -22,5 +28,6 @@ router.post("/verify-email", verifyEmail );
 router.post("/login", isLoggedOut, loginUser);
 router.get("/logout",logoutUser);
 router.get("/", isLoggedIn, userProfile);
+router.delete("/", isLoggedIn, deleteUser);
 
 module.exports = router;
