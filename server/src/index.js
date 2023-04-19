@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const dev = require("./config");
 const connectDatabase = require("./config/db");
 const userRouter=require("./routes/users");
+const adminRouter = require("./routes/admin");
 
  const app = express();
 
@@ -16,6 +17,7 @@ const userRouter=require("./routes/users");
  app.use(bodyParser.json());
  app.use(bodyParser.urlencoded({ extended: true }));
  app.use("/api/users",userRouter);
+ app.use("/api/admin",adminRouter);
 
  app.get( "/",(req,res) => {
     res.status(200).send("api is running");

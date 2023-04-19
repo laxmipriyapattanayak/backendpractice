@@ -8,7 +8,10 @@ const { registerUser,
         loginUser, 
         logoutUser, 
         userProfile, 
-        deleteUser 
+        deleteUser, 
+        updateUser,
+        forgetPassword,
+        resetPassword
      } = require("../controllers/users");    
 const dev = require("../config");
 const { isLoggedIn, isLoggedOut } = require("../middlewares/auth");
@@ -26,8 +29,13 @@ router.use(
 router.post("/register", formidable(), registerUser);
 router.post("/verify-email", verifyEmail );
 router.post("/login", isLoggedOut, loginUser);
-router.get("/logout",logoutUser);
-router.get("/", isLoggedIn, userProfile);
-router.delete("/", isLoggedIn, deleteUser);
+router.get("/logout",isLoggedIn, logoutUser);
+router
+.route('/')
+.get(isLoggedIn, userProfile)
+.delete(isLoggedIn, deleteUser)
+router.put(isLoggedIn, formidable(), updateUser);
+router.post("/forget-password", isLoggedOut, forgetPassword);
+router.post('/reset-password', isLoggedOut, resetPassword);
 
 module.exports = router;
