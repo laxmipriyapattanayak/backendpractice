@@ -1,4 +1,4 @@
-const formidable = require("express-formidable");
+//const formidable = require("express-formidable");
 const session = require("express-session");
 const router = require("express").Router();
 
@@ -15,6 +15,7 @@ const { registerUser,
      } = require("../controllers/users");    
 const dev = require("../config");
 const { isLoggedIn, isLoggedOut } = require("../middlewares/auth");
+const upload = require("../middlewares/fileUpload");
 
 router.use(
     session({
@@ -25,8 +26,8 @@ router.use(
         cookie: { secure: false, maxAge: 10 * 6000 },
     })
 );
-
-router.post("/register", formidable(), registerUser);
+//upload.single('image'),
+router.post("/register", upload.single('image'), registerUser);
 router.post("/verify-email", verifyEmail );
 router.post("/login", isLoggedOut, loginUser);
 router.get("/logout",isLoggedIn, logoutUser);
@@ -34,7 +35,7 @@ router
 .route('/')
 .get(isLoggedIn, userProfile)
 .delete(isLoggedIn, deleteUser)
-router.put(isLoggedIn, formidable(), updateUser);
+.put(isLoggedIn, upload.single('image'), updateUser);
 router.post("/forget-password", isLoggedOut, forgetPassword);
 router.post('/reset-password', isLoggedOut, resetPassword);
 

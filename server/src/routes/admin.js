@@ -4,7 +4,10 @@ const adminRouter = require("express").Router();
  
 const dev = require("../config");
 const { isLoggedIn, isLoggedOut } = require("../middlewares/auth");
-const { loginAdmin, logoutAdmin, getAllUsers } = require("../controllers/admin");
+const { loginAdmin, logoutAdmin, getAllUsers, deleteUserByAdmin } = require("../controllers/admin");
+const { registerUser, updateUser, deleteUser } = require("../controllers/users");
+const upload = require("../middlewares/fileUpload");
+const { isAdmin } = require("../middlewares/isAdmin");
 
 adminRouter.use(
     session({
@@ -17,7 +20,10 @@ adminRouter.use(
 );
 adminRouter.post("/login", isLoggedOut, loginAdmin);
 adminRouter.get("/logout",isLoggedIn, logoutAdmin);
+adminRouter.post("/register", upload.single('image'), registerUser);
 adminRouter.get("/dashboard", isLoggedIn, getAllUsers);
+adminRouter.put("/dashboard", isLoggedIn, updateUser);
+adminRouter.delete("/dashboard/:id", isLoggedIn, isAdmin, deleteUserByAdmin);
 
 
 module.exports = adminRouter;

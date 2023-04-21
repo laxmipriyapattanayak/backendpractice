@@ -34,17 +34,25 @@ const userSchema= new Schema({
         type: Number,
         default: 0
     },
-    is_varified: {
+   /* is_varified: {
         type: Number,
         default: 0 
-    },
+    },*/
     createdAt: {
         type: Date,
         default: Date.now
     },
-    image: {
+   /* image: {
         data: Buffer,
         contentType: String
+    },*/
+    image: {
+        type: String,
+        default: '../images/image1.jpg'
+    },
+    isBanned: {
+        type: Number,
+        default: 0,
     },
 });
 

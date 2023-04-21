@@ -5,86 +5,81 @@ const { securePassword, comparePassword } = require("../helpers/bcryptPassword")
 const User = require("../models/users");
 const dev = require("../config");
 const { sendEmailWithNodeMailer } = require("../helpers/email");
+const { errorResponse, successResponse } = require("../helpers/responseHandler");
 
 const loginAdmin = async (req,res) => {
     try {
         const {email, password} = req.body;
         if( !email || !password) {
-            return res.status(400).json({
-                message: "email or password is missing",
-            });
+            errorResponse(res, 400, "email or password not found");
         }
 
         if(password.length < 6){
-            return res.status(400).json({
-                message: "minimum length for password is 6",
-            })
+            errorResponse(res, 404, "minimum length for password is 6");
         }
-        const user = await User.findOne({ email })
-        if (!user) {
-            return res.status(400).json({
-                message: "user with this email does not exist. please register first",
-            });
+        const foundUser = await User.findOne({ email })
+        if (!foundUser) {
+            errorResponse(res, 400, "user with this email does not exist. please register first");
         }
 
-        if(user.is_admin === 0){
-            return res.status(400).json({
-                message: 'not an admin',
-            });
+        if(foundUser.is_admin === 0){
+            errorResponse(res, 400, 'not an admin');
         }
-         const isPasswordMatched = await comparePassword(password, user.password)
+         const isPasswordMatched = await comparePassword(password, foundUser.password)
 
          if (!isPasswordMatched) {
-            return res.status(401).json({
-                message:"email/password mismatched",
-            });
+            errorResponse(res, 401, "email/password mismatched");
          }
 
-         req.session.userId = user._id;
+         req.session.userId = foundUser._id;
 
         return res.status(200).json({
             user: {
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
-                image: user.image,
+                name: foundUser.name,
+                email: foundUser.email,
+                phone: foundUser.phone,
+                image: foundUser.image,
             },
             message: "login successful",
         });
     } catch (error) {
-        res.status(500).json({
-            message: error.message,
-        });
+        errorResponse(res, 500, error.message);
     }
 };
 const logoutAdmin = (req,res) => {
     try {
         req.session.destroy();
         res.clearCookie("admin_session")
-        res.status(200).json({
-            ok: true,
-            message: "logout successful",
-        });
+
+        successResponse(res, 200, 'logout successful')
+
     } catch (error) {
-        res.status(500).json({
-            ok: false,
-            message: error.message,
-        });
+        errorResponse(res, 500, error.message);
     }
 };
 const getAllUsers = async(req,res) => {
     try {
         const users = await User.find({is_admin : 0})
-        res.status(200).json({
-            ok: true,
-            message: "returned all user",
-            users: users,
-        });
+
+        successResponse(res, 200, 'returned all user', users)
+    
     } catch (error) {
-        res.status(500).json({
-            ok: false,
-            message: error.message,
-        });
+        errorResponse(res, 500, error.message);
     }
 };
-module.exports = { loginAdmin, logoutAdmin, getAllUsers };
+const deleteUserByAdmin = async(req,res) => {
+    try {
+        const {id} = req.params;
+        const foundUser = await User.findById(id);
+        if (!foundUser) 
+            errorResponse(res, 400, 'user not found with this id');
+        else
+        await User.findByIdAndDelete(id);
+
+        successResponse(res, 200, 'deleted user successfully')
+        
+    } catch (error) {
+        
+    }
+}
+module.exports = { loginAdmin, logoutAdmin, getAllUsers, deleteUserByAdmin };
